@@ -276,6 +276,7 @@ export class TurnosService {
       .leftJoin('d.recurso', 'recurso')
       .where('recurso.id = :recursoId', { recursoId })
       .andWhere('d.estado = :estado', { estado: 'ACTIVA' })
+      .andWhere('d.deletedAt IS NULL')
       .andWhere('d.fechaDesde <= :dateOnly', { dateOnly })
       .andWhere('(d.fechaHasta IS NULL OR d.fechaHasta >= :dateOnly)', {
         dateOnly,
@@ -307,7 +308,7 @@ export class TurnosService {
     }
 
     throw new BadRequestException(
-      'El turno no cae dentro de una disponibilidad activa',
+      'El turno no cae dentro de una disponibilidad activa del recurso',
     );
   }
 

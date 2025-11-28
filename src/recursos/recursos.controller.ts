@@ -5,10 +5,10 @@ import {
   Get,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { RecursosService } from './recursos.service';
 import { CreateRecursoDto } from './dto/create-recurso.dto';
-import { UpdateRecursoDto } from './dto/update-recurso.dto';
 
 @Controller('recursos')
 export class RecursosController {
@@ -27,6 +27,11 @@ export class RecursosController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.recursosService.findOne(+id);
+  }
+
+  @Get(':id/slots-disponibles')
+  obtenerSlots(@Param('id') id: string, @Query('fecha') fecha: string) {
+    return this.recursosService.obtenerSlotsDisponibles(+id, fecha);
   }
 
   @Delete(':id')
