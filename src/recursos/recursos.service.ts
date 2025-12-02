@@ -4,12 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Recurso } from './entities/recurso.entity';
 import { CreateRecursoDto } from './dto/create-recurso.dto';
 import { UpdateRecursoDto } from './dto/update-recurso.dto';
 import { Disponibilidad } from '../disponibilidades/entities/disponibilidad.entity';
 import { Turno } from '../turnos/entities/turno.entity';
+import { Sucursal } from '../sucursales/entities/sucursal.entity';
+import { TipoRecurso } from '../tipos-recurso/entities/tipo-recurso.entity';
 
 @Injectable()
 export class RecursosService {
@@ -20,19 +22,35 @@ export class RecursosService {
     private readonly disponibilidadesRepo: Repository<Disponibilidad>,
     @InjectRepository(Turno)
     private readonly turnosRepo: Repository<Turno>,
+    @InjectRepository(Sucursal)
+    private readonly sucursalRepo: Repository<Sucursal>,
+    @InjectRepository(TipoRecurso)
+    private readonly tipoRepo: Repository<TipoRecurso>,
   ) {}
 
   async create(dto: CreateRecursoDto): Promise<Recurso> {
+    await this.ensureSucursalActiva(dto.sucursalId);
+    await this.ensureTipoRecursoActivo(dto.tipoRecursoId);
     const recurso = this.recursosRepo.create(dto);
     return this.recursosRepo.save(recurso);
   }
 
-  findAll(): Promise<Recurso[]> {
-    return this.recursosRepo.find();
+  findAll(filters?: { sucursalId?: number; tipoRecursoId?: number }): Promise<Recurso[]> {
+    const where: any = { deletedAt: IsNull() };
+    if (filters?.sucursalId) where.sucursalId = filters.sucursalId;
+    if (filters?.tipoRecursoId) where.tipoRecursoId = filters.tipoRecursoId;
+    return this.recursosRepo.find({
+      where,
+      relations: ['sucursal', 'tipoRecurso'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async findOne(id: number): Promise<Recurso> {
-    const recurso = await this.recursosRepo.findOne({ where: { id } });
+    const recurso = await this.recursosRepo.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: ['sucursal', 'tipoRecurso'],
+    });
     if (!recurso) {
       throw new NotFoundException('Recurso no encontrado');
     }
@@ -41,6 +59,12 @@ export class RecursosService {
 
   async update(id: number, dto: UpdateRecursoDto): Promise<Recurso> {
     const recurso = await this.findOne(id);
+    if (dto.sucursalId) {
+      await this.ensureSucursalActiva(dto.sucursalId);
+    }
+    if (dto.tipoRecursoId) {
+      await this.ensureTipoRecursoActivo(dto.tipoRecursoId);
+    }
     Object.assign(recurso, dto);
     return this.recursosRepo.save(recurso);
   }
@@ -56,7 +80,9 @@ export class RecursosService {
   ): Promise<
     { inicio: string; fin: string; disponibilidadId: number; capacidadLibre: number }[]
   > {
-    const recurso = await this.recursosRepo.findOne({ where: { id: recursoId } });
+    const recurso = await this.recursosRepo.findOne({
+      where: { id: recursoId, deletedAt: IsNull() },
+    });
     if (!recurso) {
       throw new NotFoundException('Recurso no encontrado');
     }
@@ -172,5 +198,25 @@ export class RecursosService {
     finB: Date,
   ): boolean {
     return inicioA < finB && finA > inicioB;
+  }
+
+  private async ensureSucursalActiva(id: number) {
+    const sucursal = await this.sucursalRepo.findOne({
+      where: { id, deletedAt: IsNull(), activo: true },
+    });
+    if (!sucursal) {
+      throw new BadRequestException('Sucursal no existe o está inactiva');
+    }
+    return sucursal;
+  }
+
+  private async ensureTipoRecursoActivo(id: number) {
+    const tipo = await this.tipoRepo.findOne({
+      where: { id, deletedAt: IsNull(), activo: true },
+    });
+    if (!tipo) {
+      throw new BadRequestException('Tipo de recurso no existe o está inactivo');
+    }
+    return tipo;
   }
 }

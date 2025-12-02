@@ -1,13 +1,15 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateRecursoDto {
   @IsString()
   @IsNotEmpty()
   nombre: string;
-
-  @IsString()
-  @IsNotEmpty()
-  tipo: string;
 
   @IsOptional()
   @IsString()
@@ -16,4 +18,10 @@ export class CreateRecursoDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  @IsInt()
+  sucursalId: number;
+
+  @IsInt()
+  tipoRecursoId: number;
 }

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -20,22 +21,28 @@ export class RecursosController {
   }
 
   @Get()
-  findAll() {
-    return this.recursosService.findAll();
+  findAll(
+    @Query('sucursalId') sucursalId?: string,
+    @Query('tipoRecursoId') tipoRecursoId?: string,
+  ) {
+    return this.recursosService.findAll({
+      sucursalId: sucursalId ? Number(sucursalId) : undefined,
+      tipoRecursoId: tipoRecursoId ? Number(tipoRecursoId) : undefined,
+    });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recursosService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.recursosService.findOne(id);
   }
 
   @Get(':id/slots-disponibles')
-  obtenerSlots(@Param('id') id: string, @Query('fecha') fecha: string) {
-    return this.recursosService.obtenerSlotsDisponibles(+id, fecha);
+  obtenerSlots(@Param('id', ParseIntPipe) id: number, @Query('fecha') fecha: string) {
+    return this.recursosService.obtenerSlotsDisponibles(id, fecha);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recursosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.recursosService.remove(id);
   }
 }
