@@ -13,12 +13,12 @@ export class SeedDemoData1764688000000 implements MigrationInterface {
 
         // Sucursales demo
         const sucursalCentro: any = await queryRunner.query(
-            `INSERT INTO sucursales (nombre, direccion, descripcion, activo) VALUES (?, ?, ?, ?)`,
-            ['Sucursal Centro', 'Av. Principal 123', 'Sucursal principal para pruebas', true],
+            `INSERT INTO sucursales (nombre, direccion, descripcion, slogan, logo, activo, usuarioId) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            ['Sucursal Centro', 'Av. Principal 123', 'Sucursal principal para pruebas', 'Agenda simple para crecer', '/upload/logo-centro.png', true, usuarioId],
         );
         const sucursalNorte: any = await queryRunner.query(
-            `INSERT INTO sucursales (nombre, direccion, descripcion, activo) VALUES (?, ?, ?, ?)`,
-            ['Sucursal Norte', 'Calle 9 de Julio 456', 'Sucursal secundaria', true],
+            `INSERT INTO sucursales (nombre, direccion, descripcion, slogan, logo, activo, usuarioId) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            ['Sucursal Norte', 'Calle 9 de Julio 456', 'Sucursal secundaria', 'Cerca de tus clientes', '/upload/logo-norte.png', true, usuarioId],
         );
         const sucursalCentroId = sucursalCentro.insertId;
         const sucursalNorteId = sucursalNorte.insertId;

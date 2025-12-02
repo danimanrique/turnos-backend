@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateSucursalDto {
   @IsString()
@@ -13,6 +13,17 @@ export class CreateSucursalDto {
   descripcion?: string;
 
   @IsOptional()
+  @IsString()
+  slogan?: string;
+
+  @IsOptional()
+  @IsString()
+  logo?: string;
+
+  @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  @IsInt()
+  usuarioId: number;
 }
