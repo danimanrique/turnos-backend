@@ -27,12 +27,7 @@ export class TurnosService {
   ) {}
 
   async create(dto: CreateTurnoDto): Promise<Turno> {
-    const usuario = await this.usuariosRepo.findOne({
-      where: { id: dto.usuarioId },
-    });
-    if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
+    const usuario = await this.resolveUsuario(dto);
     const recurso = await this.recursosRepo.findOne({
       where: { id: dto.recursoId },
     });
@@ -67,7 +62,7 @@ export class TurnosService {
       fechaHoraFin: fechaFin,
       estado: 'RESERVADO',
       motivo: dto.motivo,
-      canalReserva: dto.canalReserva,
+      canalReserva: dto.canalReserva ?? 'PUBLICO',
     });
     return this.turnosRepo.save(turno);
   }
@@ -364,5 +359,34 @@ export class TurnosService {
     finB: Date,
   ): boolean {
     return inicioA < finB && finA > inicioB;
+  }
+
+  private async resolveUsuario(dto: CreateTurnoDto): Promise<Usuario> {
+    if (dto.usuarioId) {
+      const usuario = await this.usuariosRepo.findOne({
+        where: { id: dto.usuarioId },
+      });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      return usuario;
+    }
+
+    if (dto.usuarioEmail && dto.usuarioNombre && dto.usuarioApellido) {
+      const existing = await this.usuariosRepo.findOne({
+        where: { email: dto.usuarioEmail },
+      });
+      if (existing) return existing;
+      const nuevo = this.usuariosRepo.create({
+        nombre: dto.usuarioNombre,
+        apellido: dto.usuarioApellido,
+        email: dto.usuarioEmail,
+        passwordHash: '',
+        activo: true,
+      });
+      return this.usuariosRepo.save(nuevo);
+    }
+
+    throw new BadRequestException(
+      'Se requiere usuarioId o datos de usuario (nombre, apellido, email) para crear el turno',
+    );
   }
 }

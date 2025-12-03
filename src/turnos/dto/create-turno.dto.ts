@@ -1,14 +1,23 @@
-import {
-  IsDateString,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDateString, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateTurnoDto {
+  @IsOptional()
   @IsInt()
-  usuarioId: number;
+  usuarioId?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  usuarioNombre?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  usuarioApellido?: string;
+
+  @IsOptional()
+  @IsEmail()
+  usuarioEmail?: string;
 
   @IsInt()
   recursoId: number;
